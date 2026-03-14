@@ -1,0 +1,23 @@
+---
+- name: Install AdGuard helper packages
+  ansible.builtin.apt:
+    name: "{{ adguard_extra_packages | default([]) }}"
+    state: present
+    update_cache: true
+  when: (adguard_extra_packages | default([])) | length > 0
+
+- name: Install AdGuard rewrite updater
+  ansible.builtin.template:
+    src: update_adguard_rewrites.py.j2
+    dest: /usr/local/bin/update_adguard_rewrites.py
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Update AdGuard rewrites
+  ansible.builtin.command: >-
+    /usr/local/bin/update_adguard_rewrites.py
+    --config {{ adguard_config_path }}
+  register: adguard_rewrite_update
+  changed_when: "'CHANGED' in adguard_rewrite_update.stdout"
+  notify: restart adguard

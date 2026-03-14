@@ -1,0 +1,20 @@
+---
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    state: present
+    update_cache: true
+
+- name: Ensure /srv exists
+  ansible.builtin.file:
+    path: /srv
+    state: directory
+    mode: "0755"
+
+- name: Ensure runtime repo destination exists
+  ansible.builtin.file:
+    path: "{{ repo_dest }}"
+    state: directory
+    owner: "{{ ansible_user | default('root') }}"
+    group: "{{ ansible_user | default('root') }}"
+    mode: "0755"

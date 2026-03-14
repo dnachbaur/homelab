@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TS_HOSTNAME="{{ homelab_tailnet_fqdn }}"
+CERT_DIR="{{ tailscale_cert_dir }}"
+CRT_PATH="{{ tailscale_cert_crt }}"
+KEY_PATH="{{ tailscale_cert_key }}"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+mkdir -p "$CERT_DIR"
+
+# tailscale cert writes <hostname>.crt and <hostname>.key in the current directory.
+cd "$TMP_DIR"
+tailscale cert "$TS_HOSTNAME"
+
+install -m 0644 "$TMP_DIR/$TS_HOSTNAME.crt" "$CRT_PATH"
+install -m 0600 "$TMP_DIR/$TS_HOSTNAME.key" "$KEY_PATH"

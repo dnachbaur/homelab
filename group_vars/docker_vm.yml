@@ -1,0 +1,12 @@
+docker_packages:
+  - docker.io
+  - docker-compose-v2
+
+compose_stacks:
+  - traefik
+  - vaultwarden
+  - homepage
+
+homepage_config_dir: "{{ repo_dest }}/config/homepage"
+traefik_dynamic_dir: "{{ docker_project_root }}/dynamic"
+traefik_tls_dynamic_file: "{{ traefik_dynamic_dir }}/tls.yml"

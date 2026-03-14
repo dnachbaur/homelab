@@ -1,0 +1,7 @@
+---
+- name: Ensure Vaultwarden stack is present
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_project_root }}"
+    files:
+      - stacks/vaultwarden.yml
+    state: present

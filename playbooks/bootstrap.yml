@@ -1,0 +1,7 @@
+---
+- name: Bootstrap Debian Docker VM
+  hosts: docker_vm
+  become: true
+  roles:
+    - common
+    - docker

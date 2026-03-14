@@ -1,0 +1,16 @@
+---
+- name: Render Traefik TLS dynamic config
+  ansible.builtin.template:
+    src: tls.yml.j2
+    dest: "{{ traefik_tls_dynamic_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart traefik
+
+- name: Ensure Traefik stack is present
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_project_root }}"
+    files:
+      - stacks/traefik.yml
+    state: present

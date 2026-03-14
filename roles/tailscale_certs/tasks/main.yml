@@ -1,0 +1,27 @@
+---
+- name: Ensure certificate directory exists
+  ansible.builtin.file:
+    path: "{{ tailscale_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install tailscale certificate renewal script
+  ansible.builtin.template:
+    src: renew-tailscale-cert.sh.j2
+    dest: "{{ tailscale_cert_renew_script }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Check whether cert already exists
+  ansible.builtin.stat:
+    path: "{{ tailscale_cert_crt }}"
+  register: tailscale_cert_stat
+
+- name: Fetch or renew cert when missing
+  ansible.builtin.command: "{{ tailscale_cert_renew_script }}"
+  changed_when: true
+  when: not tailscale_cert_stat.stat.exists
+  notify: restart traefik

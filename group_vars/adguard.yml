@@ -1,0 +1,3 @@
+adguard_config_path: /opt/AdGuardHome/conf/AdGuardHome.yaml
+adguard_service_name: AdGuardHome
+adguard_dns_backup_suffix: ".ansible.bak"

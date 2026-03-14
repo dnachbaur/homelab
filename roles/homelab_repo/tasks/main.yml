@@ -1,0 +1,9 @@
+---
+- name: Checkout runtime homelab repo
+  ansible.builtin.git:
+    repo: "{{ runtime_repo_url }}"
+    dest: "{{ repo_dest }}"
+    version: "{{ runtime_repo_version }}"
+    update: true
+    accept_hostkey: "{{ runtime_repo_accept_hostkey }}"
+  become_user: "{{ ansible_user }}"

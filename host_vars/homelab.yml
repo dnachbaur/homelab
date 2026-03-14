@@ -1,0 +1,5 @@
+ansible_become: true
+
+tailscale_cert_renew_script: /usr/local/bin/renew-tailscale-cert
+tailscale_state_dir: /var/lib/tailscale
+tailscale_https_check_command: tailscale status --json

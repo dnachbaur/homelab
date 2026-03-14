@@ -1,0 +1,12 @@
+---
+- name: Deploy configs and services to homelab VM
+  hosts: docker_vm
+  become: true
+  roles:
+    - common
+    - docker
+    - homelab_repo
+    - tailscale_certs
+    - traefik
+    - vaultwarden
+    - homepage

@@ -1,0 +1,29 @@
+---
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+    update_cache: true
+
+- name: Ensure docker service is enabled and running
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Ensure runtime repo root exists
+  ansible.builtin.file:
+    path: "{{ docker_project_root }}"
+    state: directory
+    mode: "0755"
+
+- name: Ensure Traefik dynamic config directory exists
+  ansible.builtin.file:
+    path: "{{ traefik_dynamic_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Ensure proxy network exists
+  community.docker.docker_network:
+    name: "{{ docker_proxy_network }}"
+    state: present

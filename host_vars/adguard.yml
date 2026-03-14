@@ -1,0 +1,3 @@
+ansible_become: true
+adguard_extra_packages:
+  - python3-yaml

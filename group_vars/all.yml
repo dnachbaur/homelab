@@ -1,0 +1,35 @@
+repo_dest: /srv/homelab
+docker_project_root: "{{ repo_dest }}/infrastructure/docker"
+docker_proxy_network: proxy
+
+homelab_vm_ip: 192.168.1.50
+homelab_tailnet_fqdn: homelab.tail9c7112.ts.net
+
+# This hostname should work both on the LAN and over Tailscale.
+# Tailscale clients resolve it via MagicDNS.
+# LAN-only clients resolve it via AdGuard rewrite to the VM IP.
+homelab_dns_rewrites:
+  - domain: "{{ homelab_tailnet_fqdn }}"
+    answer: "{{ homelab_vm_ip }}"
+  - domain: vault.homelab
+    answer: "{{ homelab_vm_ip }}"
+  - domain: home.homelab
+    answer: "{{ homelab_vm_ip }}"
+
+tailscale_cert_dir: /etc/traefik/certs
+tailscale_cert_crt: "{{ tailscale_cert_dir }}/{{ homelab_tailnet_fqdn }}.crt"
+tailscale_cert_key: "{{ tailscale_cert_dir }}/{{ homelab_tailnet_fqdn }}.key"
+
+runtime_repo_url: git@github.com:YOURUSER/homelab.git
+runtime_repo_version: main
+runtime_repo_accept_hostkey: true
+
+base_packages:
+  - git
+  - curl
+  - ca-certificates
+  - python3
+  - python3-pip
+  - python3-apt
+  - qemu-guest-agent
+  - jq

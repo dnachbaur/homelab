@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+import argparse
+import copy
+from pathlib import Path
+import sys
+import yaml
+
+REWRITES = {{ homelab_dns_rewrites | to_nice_yaml(indent=2) | indent(0, true) }}
+
+
+def normalize(items):
+    out = []
+    for item in items or []:
+        domain = item.get('domain')
+        answer = item.get('answer')
+        if domain and answer:
+            out.append({'domain': str(domain), 'answer': str(answer)})
+    return out
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', required=True)
+    args = parser.parse_args()
+
+    path = Path(args.config)
+    if not path.exists():
+        print(f'Config not found: {path}', file=sys.stderr)
+        return 2
+
+    data = yaml.safe_load(path.read_text()) or {}
+    before = copy.deepcopy(data)
+
+    dns = data.setdefault('dns', {})
+    dns['rewrites'] = normalize(REWRITES)
+
+    if data == before:
+        print('OK: no changes')
+        return 0
+
+    backup = path.with_suffix(path.suffix + '{{ adguard_dns_backup_suffix }}')
+    backup.write_text(yaml.safe_dump(before, sort_keys=False, allow_unicode=True))
+    path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True))
+    print('CHANGED: rewrites updated')
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
