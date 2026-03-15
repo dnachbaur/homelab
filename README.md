@@ -26,7 +26,7 @@ Those aliases also resolve to the Debian VM IP through AdGuard.
 ## Repository split
 
 This repo is the **Ansible control repo**.
-It assumes your runtime Docker/Compose config lives in a separate Git repo checked out on the VM at `/srv/homelab`.
+It assumes your runtime Docker/Compose config lives in a separate Git repo checked out on the VM at `/opt/docker`.
 
 ## Layout
 

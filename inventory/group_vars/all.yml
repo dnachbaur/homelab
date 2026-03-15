@@ -1,0 +1,26 @@
+repo_dest: /opt/docker
+
+homelab_vm_ip: 192.168.0.31
+homelab_tailnet_fqdn: homelab.tail9c7112.ts.net
+
+homelab_local_aliases:
+  - vault.homelab
+  - home.homelab
+
+homelab_dns_rewrites:
+  - domain: "{{ homelab_tailnet_fqdn }}"
+    answer: "{{ homelab_vm_ip }}"
+  - domain: vault.homelab
+    answer: "{{ homelab_vm_ip }}"
+  - domain: home.homelab
+    answer: "{{ homelab_vm_ip }}"
+
+base_packages:
+  - git
+  - curl
+  - ca-certificates
+  - python3
+  - python3-pip
+  - python3-apt
+  - qemu-guest-agent
+  - jq

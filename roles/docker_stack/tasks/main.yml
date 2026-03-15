@@ -1,0 +1,24 @@
+---
+- name: Validate docker stack variables
+  ansible.builtin.assert:
+    that:
+      - docker_stack_item.name is defined
+      - docker_stack_item.compose_file is defined
+    fail_msg: "Each docker_stacks entry must define 'name' and 'compose_file'."
+
+- name: Check compose file exists
+  ansible.builtin.stat:
+    path: "{{ docker_stack_item.compose_file }}"
+  register: docker_stack_compose_file
+
+- name: Fail if compose file is missing
+  ansible.builtin.fail:
+    msg: "Compose file not found: {{ docker_stack_item.compose_file }}"
+  when: not docker_stack_compose_file.stat.exists
+
+- name: Deploy stack {{ docker_stack_item.name }}
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_root }}"
+    files:
+      - "{{ docker_stack_item.compose_file }}"
+    state: present

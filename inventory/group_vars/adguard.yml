@@ -1,0 +1,2 @@
+adguard_config_path: /opt/AdGuardHome/conf/AdGuardHome.yaml
+adguard_service_name: AdGuardHome

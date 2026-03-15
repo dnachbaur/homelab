@@ -1,0 +1,33 @@
+docker_manage_packages: true
+docker_service_name: docker
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+docker_root: /opt/docker
+docker_compose_dir: "{{ docker_root }}/compose"
+docker_data_dir: "{{ docker_root }}/data"
+docker_traefik_dir: "{{ docker_root }}/traefik"
+docker_traefik_dynamic_dir: "{{ docker_traefik_dir }}/dynamic"
+docker_traefik_certs_dir: "{{ docker_traefik_dir }}/certs"
+
+docker_proxy_network: proxy
+
+tailscale_cert_dir: "{{ docker_traefik_certs_dir }}"
+tailscale_cert_crt: "{{ tailscale_cert_dir }}/{{ homelab_tailnet_fqdn }}.crt"
+tailscale_cert_key: "{{ tailscale_cert_dir }}/{{ homelab_tailnet_fqdn }}.key"
+
+homepage_config_dir: "{{ docker_data_dir }}/homepage"
+vaultwarden_data_dir: "{{ docker_data_dir }}/vaultwarden"
+
+docker_stacks:
+  - name: traefik
+    compose_file: "{{ docker_compose_dir }}/traefik.yml"
+  - name: vaultwarden
+    compose_file: "{{ docker_compose_dir }}/vaultwarden.yml"
+  - name: homepage
+    compose_file: "{{ docker_compose_dir }}/homepage.yml"

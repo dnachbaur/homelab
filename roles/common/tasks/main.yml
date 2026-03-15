@@ -5,16 +5,17 @@
     state: present
     update_cache: true
 
-- name: Ensure /srv exists
+- name: Ensure core docker directories exist
   ansible.builtin.file:
-    path: /srv
+    path: "{{ item }}"
     state: directory
     mode: "0755"
-
-- name: Ensure runtime repo destination exists
-  ansible.builtin.file:
-    path: "{{ repo_dest }}"
-    state: directory
-    owner: "{{ ansible_user | default('root') }}"
-    group: "{{ ansible_user | default('root') }}"
-    mode: "0755"
+  loop:
+    - "{{ docker_root }}"
+    - "{{ docker_compose_dir }}"
+    - "{{ docker_data_dir }}"
+    - "{{ docker_traefik_dir }}"
+    - "{{ docker_traefik_dynamic_dir }}"
+    - "{{ docker_traefik_certs_dir }}"
+    - "{{ homepage_config_dir }}"
+    - "{{ vaultwarden_data_dir }}"

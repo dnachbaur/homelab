@@ -1,6 +1,6 @@
 ---
-- name: Update AdGuard rewrites for homelab hostnames
-  hosts: adguard
+- name: Update AdGuard DNS rewrites
+  hosts: adguard_lxc
   become: true
   roles:
     - adguard_dns
