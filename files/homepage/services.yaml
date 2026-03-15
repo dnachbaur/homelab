@@ -1,0 +1,9 @@
+- Infrastructure:
+    - Traefik:
+        icon: traefik.png
+        href: https://homelab.tail9c7112.ts.net/dashboard/
+        description: Reverse proxy dashboard
+    - Vaultwarden:
+        icon: bitwarden.png
+        href: https://vault.homelab
+        description: Password manager

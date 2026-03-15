@@ -4,6 +4,7 @@
   become: true
   roles:
     - tailscale_certs
+    - runtime_files
 
   tasks:
     - name: Deploy docker compose stacks

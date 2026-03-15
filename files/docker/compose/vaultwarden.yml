@@ -1,0 +1,23 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.33.2
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      WEBSOCKET_ENABLED: "true"
+      DOMAIN: "https://vault.homelab"
+      SIGNUPS_ALLOWED: "false"
+    volumes:
+      - /opt/docker/data/vaultwarden:/data
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.vaultwarden.rule=Host(`vault.homelab`) || (Host(`homelab.tail9c7112.ts.net`) && PathPrefix(`/vault`))
+      - traefik.http.routers.vaultwarden.entrypoints=websecure
+      - traefik.http.routers.vaultwarden.middlewares=default-security-headers@file
+      - traefik.http.services.vaultwarden.loadbalancer.server.port=80
+
+networks:
+  proxy:
+    external: true

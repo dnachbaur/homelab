@@ -24,6 +24,13 @@ tailscale_cert_key: "{{ tailscale_cert_dir }}/{{ homelab_tailnet_fqdn }}.key"
 homepage_config_dir: "{{ docker_data_dir }}/homepage"
 vaultwarden_data_dir: "{{ docker_data_dir }}/vaultwarden"
 
+backup_root_dir: /opt/docker/backup
+backup_vaultwarden_dir: "{{ backup_root_dir }}/vaultwarden"
+backup_retention_days: 14
+backup_schedule: '*-*-* 03:15:00'
+
+traefik_basic_auth_users: []
+
 docker_stacks:
   - name: traefik
     compose_file: "{{ docker_compose_dir }}/traefik.yml"

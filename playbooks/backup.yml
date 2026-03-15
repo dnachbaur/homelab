@@ -1,0 +1,6 @@
+---
+- name: Configure backups on Docker VM
+  hosts: docker_vm
+  become: true
+  roles:
+    - backup

@@ -1,0 +1,45 @@
+---
+- name: Ensure runtime directories exist
+  ansible.builtin.file:
+    path: "{{ item.dest }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - { dest: "{{ docker_compose_dir }}" }
+    - { dest: "{{ docker_traefik_dynamic_dir }}" }
+    - { dest: "{{ homepage_config_dir }}" }
+
+- name: Deploy compose files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+  loop:
+    - { src: "docker/compose/traefik.yml", dest: "{{ docker_compose_dir }}/traefik.yml" }
+    - { src: "docker/compose/vaultwarden.yml", dest: "{{ docker_compose_dir }}/vaultwarden.yml" }
+    - { src: "docker/compose/homepage.yml", dest: "{{ docker_compose_dir }}/homepage.yml" }
+
+- name: Deploy Traefik dynamic config
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+  loop:
+    - { src: "tls.yml.j2", dest: "{{ docker_traefik_dynamic_dir }}/tls.yml" }
+    - { src: "security.yml.j2", dest: "{{ docker_traefik_dynamic_dir }}/security.yml" }
+
+- name: Deploy Homepage config files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+  loop:
+    - { src: "homepage/bookmarks.yaml", dest: "{{ homepage_config_dir }}/bookmarks.yaml" }
+    - { src: "homepage/services.yaml", dest: "{{ homepage_config_dir }}/services.yaml" }
+    - { src: "homepage/settings.yaml", dest: "{{ homepage_config_dir }}/settings.yaml" }
+    - { src: "homepage/widgets.yaml", dest: "{{ homepage_config_dir }}/widgets.yaml" }
+    - { src: "homepage/docker.yaml", dest: "{{ homepage_config_dir }}/docker.yaml" }
+    - { src: "homepage/proxmox.yaml", dest: "{{ homepage_config_dir }}/proxmox.yaml" }
+    - { src: "homepage/kubernetes.yaml", dest: "{{ homepage_config_dir }}/kubernetes.yaml" }
+    - { src: "homepage/custom.css", dest: "{{ homepage_config_dir }}/custom.css" }
+    - { src: "homepage/custom.js", dest: "{{ homepage_config_dir }}/custom.js" }
