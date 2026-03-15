@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+stamp="$(date +%F-%H%M%S)"
+outdir="{{ backup_vaultwarden_dir }}"
+mkdir -p "$outdir"
+
+if [ -f "{{ vaultwarden_data_dir }}/db.sqlite3" ]; then
+  sqlite3 "{{ vaultwarden_data_dir }}/db.sqlite3" ".backup '$outdir/db-$stamp.sqlite3'"
+fi
+
+tar -C "{{ vaultwarden_data_dir }}" -czf "$outdir/vaultwarden-data-$stamp.tgz" \
+  rsa_key.pem \
+  certs \
+  2>/dev/null || true
+
+find "$outdir" -type f -mtime +{{ backup_retention_days }} -delete

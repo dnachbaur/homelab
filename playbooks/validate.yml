@@ -1,0 +1,6 @@
+---
+- name: Validate homelab services on Docker VM
+  hosts: docker_vm
+  become: true
+  roles:
+    - healthcheck

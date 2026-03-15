@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep -qx traefik
+docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep -qx homepage
+docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep -qx vaultwarden
+curl -kfsS https://{{ homelab_tailnet_fqdn }}/ >/dev/null

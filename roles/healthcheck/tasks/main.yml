@@ -1,0 +1,13 @@
+---
+- name: Install healthcheck script
+  ansible.builtin.template:
+    src: homelab-healthcheck.sh.j2
+    dest: /usr/local/bin/homelab-healthcheck
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Run healthcheck script
+  ansible.builtin.command: /usr/local/bin/homelab-healthcheck
+  register: homelab_healthcheck
+  changed_when: false

@@ -11,7 +11,7 @@ Canonical hostname:
 
 - `homelab.tail9c7112.ts.net`
 
-This hostname is intended to work in **both** places:
+This hostname is intended to work in both places:
 
 - **via Tailscale**: MagicDNS resolves it on Tailscale-connected clients
 - **on the local LAN**: AdGuard rewrites the same hostname to the Debian VM LAN IP
@@ -21,37 +21,27 @@ Additional local aliases:
 - `vault.homelab`
 - `home.homelab`
 
-Those aliases also resolve to the Debian VM IP through AdGuard.
+## What this branch adds
 
-## Repository split
+This refactor makes the repo more self-contained and closer to fully Git-managed:
 
-This repo is the **Ansible control repo**.
-It assumes your runtime Docker/Compose config lives in a separate Git repo checked out on the VM at `/opt/docker`.
+- runtime compose files are stored in `files/docker/compose/`
+- Traefik dynamic config is rendered from templates in `roles/runtime_files/templates/`
+- Homepage config is stored in `files/homepage/`
+- Vaultwarden backups are configured with a systemd timer
+- a healthcheck playbook is included
+- GitHub Actions linting is included for Ansible and YAML
+
+Vaultwarden **application data remains unmanaged** on purpose.
 
 ## Layout
 
 - `playbooks/bootstrap.yml` — first-time VM prep
-- `playbooks/deploy.yml` — sync runtime repo, certs, configs, and deploy stacks
+- `playbooks/deploy.yml` — copy runtime files, verify certs, deploy stacks
+- `playbooks/backup.yml` — configure backup timer
 - `playbooks/dns.yml` — update AdGuard rewrites
+- `playbooks/validate.yml` — run basic service checks
 - `playbooks/site.yml` — full run in the correct order
-
-## Prerequisites
-
-Control machine:
-
-- Ansible installed
-- SSH access to both hosts
-- Docker collection installed:
-
-```bash
-ansible-galaxy collection install -r requirements.yml
-```
-
-Managed hosts:
-
-- Debian/Ubuntu-like package manager (`apt`)
-- Tailscale already authenticated on `homelab`
-- AdGuard Home already installed on `adguard`
 
 ## Usage
 
@@ -64,29 +54,35 @@ ansible-galaxy collection install -r requirements.yml
 Bootstrap the Docker VM:
 
 ```bash
-ansible-playbook playbooks/bootstrap.yml
+ansible-playbook -i inventory/hosts.yml playbooks/bootstrap.yml -K
 ```
 
 Deploy configs and services:
 
 ```bash
-ansible-playbook playbooks/deploy.yml
+ansible-playbook -i inventory/hosts.yml playbooks/deploy.yml -K
 ```
 
-Update only AdGuard DNS:
+Configure backups:
 
 ```bash
-ansible-playbook playbooks/dns.yml
+ansible-playbook -i inventory/hosts.yml playbooks/backup.yml -K
+```
+
+Run validation:
+
+```bash
+ansible-playbook -i inventory/hosts.yml playbooks/validate.yml -K
 ```
 
 Run the full flow:
 
 ```bash
-ansible-playbook playbooks/site.yml
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml -K
 ```
 
 ## Notes
 
-- The AdGuard role updates `dns.rewrites` in `AdGuardHome.yaml` with a small Python helper so the canonical Tailscale hostname also works locally.
-- The Traefik role expects the runtime repo to contain Compose files under `infrastructure/docker/stacks/`.
-- Replace placeholder usernames, IPs, repo URLs, and optional secrets before first use.
+- The AdGuard role updates `dns.rewrites` in `AdGuardHome.yaml` with a Python helper so the canonical Tailscale hostname also works locally.
+- The Traefik basic auth user list is empty by default. Populate `traefik_basic_auth_users` before enabling `local-auth` anywhere.
+- Replace placeholder usernames, IPs, and any example Homepage entries before first use.

@@ -1,0 +1,9 @@
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: {{ tailscale_cert_crt }}
+        keyFile: {{ tailscale_cert_key }}
+  certificates:
+    - certFile: {{ tailscale_cert_crt }}
+      keyFile: {{ tailscale_cert_key }}

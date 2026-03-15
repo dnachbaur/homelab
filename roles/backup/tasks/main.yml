@@ -1,0 +1,51 @@
+---
+- name: Install backup packages
+  ansible.builtin.apt:
+    name:
+      - sqlite3
+      - tar
+    state: present
+    update_cache: true
+
+- name: Ensure backup directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ backup_root_dir }}"
+    - "{{ backup_vaultwarden_dir }}"
+
+- name: Install vaultwarden backup script
+  ansible.builtin.template:
+    src: backup-vaultwarden.sh.j2
+    dest: /usr/local/bin/backup-vaultwarden
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install vaultwarden backup service
+  ansible.builtin.template:
+    src: vaultwarden-backup.service.j2
+    dest: /etc/systemd/system/vaultwarden-backup.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload systemd
+
+- name: Install vaultwarden backup timer
+  ansible.builtin.template:
+    src: vaultwarden-backup.timer.j2
+    dest: /etc/systemd/system/vaultwarden-backup.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload systemd
+
+- name: Ensure vaultwarden backup timer is enabled
+  ansible.builtin.systemd:
+    name: vaultwarden-backup.timer
+    enabled: true
+    state: started
