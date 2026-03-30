@@ -1,0 +1,7 @@
+proxmox_storage: local-zfs
+proxmox_node: server
+proxmox_api_token_id: "ansible"
+proxmox_api_token_secret: "{{ vault_proxmox_token_secret }}"
+proxmox_templates:
+  adguard: "adguard-template"      # name or ID of the LXC template
+  homelab: "homelab-template"      # name or ID of the VM template

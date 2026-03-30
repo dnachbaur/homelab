@@ -1,0 +1,87 @@
+---
+- name: Provision Proxmox — AdGuard LXC + Docker VM
+  hosts: pve
+  gather_facts: false
+  vars_files:
+    - ../inventory/group_vars/proxmox.yml
+    - ../inventory/group_vars/proxmox/vault.yml
+
+  tasks:
+
+    - name: Ensure AdGuard LXC (CT 100) — clone if missing
+      community.proxmox.proxmox:
+        api_host: "{{ proxmox_api_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+        api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+        api_password: "{{ vault_proxmox_password | default(omit) }}"
+        validate_certs: false
+        node: "{{ proxmox_node }}"
+        vmid: 100
+        hostname: adguard
+        ostype: debian
+        cores: 1
+        memory: 512
+        swap: 512
+        storage: "{{ proxmox_storage }}"
+        disk: "{{ proxmox_storage }}:2"
+        netif:
+          net0: "name=eth0,bridge=vmbr0,ip=192.168.0.51/24,gw=192.168.0.254"
+        features: "nesting=1,keyctl=1"
+        unprivileged: true
+        onboot: true
+        timezone: Europe/Zurich
+        state: started
+        clone: 100
+        clone_type: linked
+      register: adguard_result
+
+    - name: Ensure Docker VM (VM 101) — clone if missing
+      community.proxmox.proxmox_kvm:
+        api_host: "{{ proxmox_api_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+        api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+        api_password: "{{ vault_proxmox_password | default(omit) }}"
+        validate_certs: false
+        node: "{{ proxmox_node }}"
+        vmid: 101
+        name: docker-host
+        clone: 101
+        full: false                    # linked clone = fast + low disk usage
+        storage: "{{ proxmox_storage }}"
+        memory: 8192
+        cores: 4
+        cpu: host
+        net:                           # ← Changed from net0 to net (dictionary)
+          net0: "virtio,bridge=vmbr0,firewall=1"
+        onboot: true
+        state: started
+      register: docker_clone_result
+
+    - name: Apply cloud-init config to Docker VM (after clone)
+      community.proxmox.proxmox_kvm:
+        api_host: "{{ proxmox_api_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+        api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+        api_password: "{{ vault_proxmox_password | default(omit) }}"
+        validate_certs: false
+        node: "{{ proxmox_node }}"
+        vmid: 101
+        ciuser: daniel
+        cipassword: "{{ vault_daniel_password | default(omit) }}"
+        ipconfig0: "ip=192.168.0.31/24,gw=192.168.0.254"
+        nameservers: "192.168.0.254"
+        agent: "1"
+        update: true
+      when: docker_clone_result.changed
+
+    - name: Wait for Docker VM SSH to become available
+      ansible.builtin.wait_for:
+        host: 192.168.0.31
+        port: 22
+        delay: 60
+        timeout: 600
+      delegate_to: localhost
+      when: docker_clone_result.changed
