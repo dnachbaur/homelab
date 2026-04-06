@@ -7,3 +7,7 @@ provider "proxmox" {
     username = "terraform"
   }
 }
+
+module "adguard_home" {
+  source = "./adguard-home"
+}
