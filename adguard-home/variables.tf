@@ -31,7 +31,7 @@ variable "adguard_gateway" {
 variable "adguard_dns_servers" {
   type        = list(string)
   description = "DNS servers for the container during initialization"
-  default     = ["1.1.1.1", "8.8.8.8"]
+  default     = ["1.1.1.1"]
 }
 
 variable "adguard_storage" {
@@ -48,6 +48,6 @@ variable "adguard_template_datastore" {
 
 variable "adguard_template_url" {
   type        = string
-  description = "URL of the Debian 13 LXC cloud image archive to use for the container template"
-  default     = "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.tar.xz"
+  description = "URL of the official Proxmox Debian 13 LXC template to use for the container"
+  default     = "http://download.proxmox.com/images/system/debian-13-standard_13.1-2_amd64.tar.zst"
 }

@@ -24,10 +24,12 @@ resource "proxmox_virtual_environment_container" "adguard_home" {
   features {
     nesting = false
   }
-  start_on_boot = true
-  wait_for_ip {
-    ipv4 = true
-  }
+  start_on_boot  = true
+  started        = true
+  timeout_create = 18000
+  timeout_update = 18000
+  timeout_clone  = 18000
+  timeout_delete = 18000
 
   initialization {
     hostname = var.adguard_hostname
@@ -66,34 +68,30 @@ resource "proxmox_virtual_environment_container" "adguard_home" {
   tags = ["adguard", "dns"]
 }
 
-resource "null_resource" "install_adguard_home" {
+# Write SSH key to temp file and run Ansible
+resource "null_resource" "provision_with_ansible" {
   depends_on = [proxmox_virtual_environment_container.adguard_home]
 
   triggers = {
-    adguard_ip   = var.adguard_ip
-    adguard_vmid = var.adguard_vmid
+    ansible_playbook_hash = filemd5("${path.module}/../ansible/playbook.yml")
   }
 
-  connection {
-    type        = "ssh"
-    host        = split("/", var.adguard_ip)[0]
-    user        = "root"
-    private_key = tls_private_key.adguard_ssh.private_key_pem
-    timeout     = "2m"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "export DEBIAN_FRONTEND=noninteractive",
-      "apt-get update",
-      "apt-get install -y curl tar",
-      "cd /tmp",
-      "curl -LO https://github.com/AdguardTeam/AdGuardHome/releases/latest/download/AdGuardHome_linux_amd64.tar.gz",
-      "tar xzf AdGuardHome_linux_amd64.tar.gz",
-      "cd AdGuardHome",
-      "./AdGuardHome -s install",
-      "systemctl enable AdGuardHome",
-      "systemctl start AdGuardHome"
-    ]
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -e
+      keyfile=$(mktemp)
+      trap "rm -f $keyfile" EXIT
+      cat > $keyfile <<'KEY'
+${tls_private_key.adguard_ssh.private_key_pem}
+KEY
+      chmod 600 $keyfile
+      sleep 10
+      ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook \
+        --ssh-extra-args='-o ConnectTimeout=10 -o ConnectionAttempts=3' \
+        -i '${split("/", var.adguard_ip)[0]},' \
+        -u root \
+        --private-key $keyfile \
+        ${path.module}/../ansible/playbook.yml
+    EOT
   }
 }

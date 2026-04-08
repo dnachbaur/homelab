@@ -1,0 +1,100 @@
+---
+- name: Install AdGuard Home on the LXC
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure apt cache is updated
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - curl
+          - tar
+        state: present
+
+    - name: Download AdGuard Home archive
+      ansible.builtin.get_url:
+        url: https://github.com/AdguardTeam/AdGuardHome/releases/latest/download/AdGuardHome_linux_amd64.tar.gz
+        dest: /tmp/AdGuardHome_linux_amd64.tar.gz
+        mode: '0644'
+
+    - name: Remove previous AdGuard Home extraction directory
+      ansible.builtin.file:
+        path: /tmp/AdGuardHome
+        state: absent
+
+    - name: Extract AdGuard Home
+      ansible.builtin.unarchive:
+        src: /tmp/AdGuardHome_linux_amd64.tar.gz
+        dest: /tmp
+        remote_src: yes
+
+    - name: Make AdGuard Home binary executable
+      ansible.builtin.file:
+        path: /tmp/AdGuardHome/AdGuardHome
+        mode: '0755'
+        state: file
+
+    - name: Check whether AdGuard Home service file exists
+      ansible.builtin.stat:
+        path: /etc/systemd/system/AdGuardHome.service
+      register: adguard_service_file
+
+    - name: Ensure AdGuard Home install directory exists
+      ansible.builtin.file:
+        path: /opt/AdGuardHome
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Write AdGuard Home configuration
+      ansible.builtin.copy:
+        dest: /opt/AdGuardHome/AdGuardHome.yaml
+        content: |-
+          bind_host: 0.0.0.0
+          bind_port: 3000
+          http:
+            enabled: true
+            bind_host: 0.0.0.0
+            bind_port: 3000
+            auth_type: none
+          dns:
+            bind_hosts:
+              - 0.0.0.0
+            port: 53
+            bootstrap_dns:
+              - 1.1.1.1
+              - 8.8.8.8
+            upstream_dns:
+              - 1.1.1.1
+              - 8.8.8.8
+          blocklists:
+            - enabled: true
+              name: EasyList
+              url: https://easylist.to/easylist/easylist.txt
+            - enabled: true
+              name: EasyPrivacy
+              url: https://easylist.to/easylist/easyprivacy.txt
+            - enabled: true
+              name: AdGuard DNS filter
+              url: https://filters.adtidy.org/extension/chromium/filters/15.txt
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: Install AdGuard Home service
+      ansible.builtin.command:
+        cmd: /tmp/AdGuardHome/AdGuardHome -s install
+      args:
+        creates: /etc/systemd/system/AdGuardHome.service
+      when: not adguard_service_file.stat.exists
+
+    - name: Ensure AdGuard Home service is enabled and started
+      ansible.builtin.systemd:
+        name: AdGuardHome
+        enabled: yes
+        state: started
